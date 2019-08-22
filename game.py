@@ -24,8 +24,6 @@ pathAudio = "Assets/Audio/"
 
 def init_menu():
     count = 1
-    start = False
-    counter = 0
     menuSong = pygame.mixer.Sound( pathAudio  + 'menu.ogg')
     menuSong.play(-1)
     while True:
@@ -37,10 +35,55 @@ def init_menu():
         event = pygame.event.poll()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                start = True
+                break
             elif event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 quit()
+        elif event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+        else:
+            write_text('RETRO SHOOTER', WIDTH / 4 - 10, HEIGHT / 4, WHITE, 18)
+            if count / 2 - 10 < 30:
+                write_text('Press Enter To Play', WIDTH / 4, HEIGHT / 2, WHITE)
+                write_text('Or Escape to quit !', WIDTH / 4 + 10, HEIGHT / 2 + 40, WHITE)
+            write_text('made by Steven Chiffe', WIDTH / 4 + 20, HEIGHT - 10, WHITE, 8)
+        clock.tick(FPS)
+        pygame.display.update()  
+    chooseYourShip(menuSong)
+    # launch_game()
+
+def write_text(message, x, y, color, fontSize = 12):
+    GAME_FONT = pygame.freetype.Font("Assets/font/8-BIT WONDER.TTF", fontSize)
+    text, rect = GAME_FONT.render(message, color)
+    screen.blit(text, (x, y))
+
+
+def chooseYourShip(menuSong):
+    Numbership = 0
+    count = 1
+    start = False
+    counter = 0
+    while True:
+        ship = pygame.image.load(pathImage + "Ship/ship" + str(Numbership) + ".png")
+        background = pygame.image.load(pathImage + "Background/background" + str(math.floor(count / 10)) + ".gif")
+        count = count + 1
+        if count == 150:
+            count = 1
+        event = pygame.event.poll()
+        screen.blit(background , (0, 0))
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                quit()
+            elif event.key  ==  pygame.K_LEFT:
+                if Numbership != 2:
+                    Numbership =  Numbership + 1
+            elif event.key  ==  pygame.K_RIGHT:
+                if  Numbership != 0:
+                    Numbership =  Numbership - 1
+            elif event.key  ==  pygame.K_RETURN:
+                start = True
         elif event.type == pygame.QUIT:
             pygame.quit()
             quit()
@@ -59,56 +102,17 @@ def init_menu():
                 break
             counter = counter + 1
         else:
-            write_text('RETRO SHOOTER', WIDTH / 4 - 10, HEIGHT / 4, WHITE, 18)
-            if count / 2 - 10 < 30:
-                write_text('Press Enter To Play', WIDTH / 4, HEIGHT / 2, WHITE)
-                write_text('Or Escape to quit !', WIDTH / 4 + 10, HEIGHT / 2 + 40, WHITE)
-            write_text('made by Steven Chiffe', WIDTH / 4 + 20, HEIGHT - 10, WHITE, 8)
+            screen.blit(ship,(WIDTH / 2 - (ship.get_size()[0] / 2), HEIGHT / 2))
+            write_text("Ship number " + str(Numbership), WIDTH / 3 - 10, HEIGHT / 2 + 100, PURPLE)
+            write_text("Press enter to go", WIDTH / 3 - 30, HEIGHT / 2 + 130, PURPLE)
         clock.tick(FPS)
-        pygame.display.update()  
-    # chooseYourShip()
-    launch_game()
-
-def write_text(message, x, y, color, fontSize = 12):
-    GAME_FONT = pygame.freetype.Font("Assets/font/8-BIT WONDER.TTF", fontSize)
-    text, rect = GAME_FONT.render(message, color)
-    screen.blit(text, (x, y))
-
-
-# def chooseYourShip():
-#     Numbership = 0
-#     count = 1
-#     while True:
-#         ship = pygame.image.load(pathImage + "Ship/ship" + str(Numbership) + ".png")
-#         background = pygame.image.load(pathImage + "Background/background" + str(math.floor(count / 10)) + ".gif")
-#         count = count + 1
-#         if count == 150:
-#             count = 1
-#         screen.blit(background , (0, 0))
-#         screen.blit(ship,(WIDTH / 2 - (ship.get_size()[0] / 2), HEIGHT / 2))
-#         write_text("Ship number " + str(Numbership), WIDTH / 3 - 10, HEIGHT / 2 + 100, PURPLE)
-#         write_text("Press enter to go", WIDTH / 3 - 30, HEIGHT / 2 + 130, PURPLE)
-#         event = pygame.event.poll()
-#         if event.type == pygame.KEYDOWN:
-#             if event.key == pygame.K_ESCAPE:
-#                 pygame.quit()
-#                 quit()
-#             elif event.key  ==  pygame.K_LEFT:
-#                 if Numbership != 2:
-#                     Numbership =  Numbership + 1
-#             elif event.key  ==  pygame.K_RIGHT:
-#                 if  Numbership != 0:
-#                     Numbership =  Numbership - 1
-#         elif event.type == pygame.QUIT:
-#             pygame.quit()
-#             quit()
-#         clock.tick(FPS)
-#         pygame.display.update()   
+        pygame.display.update()
+    launch_game(Numbership)
 
 
 
-def launch_game():
-    ship = pygame.image.load(pathImage + "Ship/ship2.png")
+def launch_game(numbership):
+    ship = pygame.image.load(pathImage + "Ship/ship" + str(numbership) + ".png")
     ship = pygame.transform.scale(ship, (50, 38))
     player = Player(ship)
     count = 1

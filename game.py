@@ -176,16 +176,30 @@ class Weapon:
 
     def __init__(self, Player):
         self.Player = Player
-        self.number = 1
+        self.number = 3
         self.bullets = []
         self.shoot = True
         self.speed = 3
+        self.distance = 150
     
     def pioupiou(self):
-        if self.shoot:
+        if self.shoot and self.number == 1:
             self.shoot = False
             self.launchBullet()
             self.bullets.append([self.x + 20, self.y - 30, self.number])
+            return True
+        elif self.shoot and self.number == 2: 
+            self.shoot = False
+            self.launchBullet()
+            self.bullets.append([self.x, self.y - 10, self.number])
+            self.bullets.append([self.x + 40, self.y - 10, self.number])
+            return True
+        elif self.shoot and self.number == 3:
+            self.shoot = False
+            self.launchBullet()
+            self.bullets.append([self.x, self.y - 10, self.number])
+            self.bullets.append([self.x + 20, self.y - 30, self.number])
+            self.bullets.append([self.x + 40, self.y - 10, self.number])
             return True
         return False
 
@@ -195,7 +209,7 @@ class Weapon:
     
     def update(self):
         for x in range(0 , len(self.bullets)):
-            if x == len(self.bullets) - 1  and self.y - self.bullets[len(self.bullets) - 1][1] > 150:
+            if x == len(self.bullets) - 1  and self.y - self.bullets[len(self.bullets) - 1][1] > self.distance:
                 self.shoot = True
             self.bullets[x][1] = self.bullets[x][1] - self.speed
         if len(self.bullets) != 0:
@@ -205,4 +219,4 @@ class Weapon:
     def getBullets(self):
         return self.bullets
 
-init_menu()
+launch_game(2)

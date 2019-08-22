@@ -110,11 +110,13 @@ def chooseYourShip(menuSong):
     launch_game(Numbership)
 
 
-
 def launch_game(numbership):
     ship = pygame.image.load(pathImage + "Ship/ship" + str(numbership) + ".png")
     ship = pygame.transform.scale(ship, (50, 38))
+    laser = pygame.image.load(pathImage  +  "Weapon/laser0.png")
+    piou = pygame.mixer.Sound( pathAudio  + 'sfx_laser1.ogg')
     player = Player(ship)
+    weapon = Weapon(player)
     count = 1
     while True:
         background = pygame.image.load(pathImage + "Background/background" + str(math.floor(count / 10)) + ".gif")
@@ -125,6 +127,10 @@ def launch_game(numbership):
         screen.blit(ship, (player.getX(), player.getY()))
         event = pygame.event.poll()
         keys = pygame.key.get_pressed()
+        bullet = weapon.getBullets()
+        if len(bullet) != 0:
+            for x in bullet:
+                screen.blit(laser, (x[0], x[1]))
         if keys[pygame.K_LEFT]:
             player.updateMovement("left")
         if keys[pygame.K_RIGHT]:
@@ -133,10 +139,14 @@ def launch_game(numbership):
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 quit()
+            elif event.key == pygame.K_SPACE:
+                if(weapon.pioupiou()):
+                    piou.play()      
         elif event.type == pygame.QUIT:
             pygame.quit()
             quit()
         clock.tick(FPS)
+        weapon.update()
         pygame.display.update()     
 
 class Player:
@@ -161,4 +171,38 @@ class Player:
         else:
             if(self.x > 0):
                 self.x = self.x - self.speed
+
+class Weapon:
+
+    def __init__(self, Player):
+        self.Player = Player
+        self.number = 1
+        self.bullets = []
+        self.shoot = True
+        self.speed = 3
+    
+    def pioupiou(self):
+        if self.shoot:
+            self.shoot = False
+            self.launchBullet()
+            self.bullets.append([self.x + 20, self.y - 30, self.number])
+            return True
+        return False
+
+    def launchBullet(self):
+        self.x = self.Player.getX()
+        self.y = self.Player.getY()
+    
+    def update(self):
+        for x in range(0 , len(self.bullets)):
+            if x == len(self.bullets) - 1  and self.y - self.bullets[len(self.bullets) - 1][1] > 150:
+                self.shoot = True
+            self.bullets[x][1] = self.bullets[x][1] - self.speed
+        if len(self.bullets) != 0:
+            if self.bullets[0][1] < -40:
+                del self.bullets[0]
+            
+    def getBullets(self):
+        return self.bullets
+
 init_menu()

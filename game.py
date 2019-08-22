@@ -117,6 +117,7 @@ def launch_game(numbership):
     piou = pygame.mixer.Sound( pathAudio  + 'sfx_laser1.ogg')
     player = Player(ship)
     weapon = Weapon(player)
+    meteors = Meteors()
     count = 1
     while True:
         background = pygame.image.load(pathImage + "Background/background" + str(math.floor(count / 10)) + ".gif")
@@ -128,9 +129,13 @@ def launch_game(numbership):
         event = pygame.event.poll()
         keys = pygame.key.get_pressed()
         bullet = weapon.getBullets()
+        meteor = meteors.getMeteors()
         if len(bullet) != 0:
             for x in bullet:
                 screen.blit(laser, (x[0], x[1]))
+        for x in meteor:
+            image = pygame.image.load(pathImage + "meteors/" + x[3] + ".png")
+            screen.blit(image, (x[0], x[1])) 
         if keys[pygame.K_LEFT]:
             player.updateMovement("left")
         if keys[pygame.K_RIGHT]:
@@ -147,6 +152,7 @@ def launch_game(numbership):
             quit()
         clock.tick(FPS)
         weapon.update()
+        meteors.update()
         pygame.display.update()     
 
 class Player:
@@ -154,7 +160,7 @@ class Player:
         self.x = WIDTH / 2
         self.y = HEIGHT - 50
         self.lives = 3
-        self.speed = 2.2
+        self.speed = 5
         self.width = ship_sprite.get_size()[0]
         self.height = ship_sprite.get_size()[1]
     
@@ -176,10 +182,10 @@ class Weapon:
 
     def __init__(self, Player):
         self.Player = Player
-        self.number = 3
+        self.number = 1
         self.bullets = []
         self.shoot = True
-        self.speed = 3
+        self.speed = 6
         self.distance = 150
     
     def pioupiou(self):
@@ -219,4 +225,36 @@ class Weapon:
     def getBullets(self):
         return self.bullets
 
+class Meteors:
+    def __init__(self):
+        self.meteors = []
+        self.meteorpossible = ["meteor0", "meteor1", "meteor2"]
+        self.generation()
+        
+    def generation(self, range_ = 10):
+        for x in range(1 , range_):
+            Meteor = random.choice(self.meteorpossible)
+            meteorX = pygame.image.load(pathImage + "meteors/" + Meteor + ".png").get_size()[0]
+            meteorY = pygame.image.load(pathImage + "meteors/" + Meteor  + ".png").get_size()[1]
+            PositionX = random.randrange(0, WIDTH - meteorX)
+            PositionY = random.randrange(-300, -100)
+            Speed = random.randrange(3 , 7)
+            self.meteors.append([PositionX, PositionY , Speed, Meteor])
+    
+    def update(self):
+        tab = []
+        for x in range(0 , len(self.meteors)):
+            self.meteors[x][1] = self.meteors[x][1] + self.meteors[x][2]
+            if self.meteors[x][1] + 10 > HEIGHT:
+                tab.append(x)
+        y = 0
+        for x in tab:
+            self.meteors.pop(x - y)
+            y = y - 1
+        if len(self.meteors) < 9:
+            self.generation(9 - len(self.meteors))
+
+
+    def getMeteors(self):
+        return self.meteors
 launch_game(2)

@@ -25,6 +25,8 @@ def init_menu():
     count = 1
     start = False
     counter = 0
+    menuSong = pygame.mixer.Sound( pathAudio  + 'menu.ogg')
+    menuSong.play(-1)
     while True:
         background = pygame.image.load(pathImage + "Background/background" + str(math.floor(count / 10)) + ".gif")
         count = count + 1
@@ -43,10 +45,13 @@ def init_menu():
             quit()
         elif start:
             if counter <= 60:
-                write_text('3', WIDTH / 2 - 5, HEIGHT / 2, WHITE, 30)
+                write_text('3', WIDTH / 2 - 10, HEIGHT / 2, WHITE, 50)
             elif counter >= 60 and counter < 120:
-                write_text('2', WIDTH / 2 - 10, HEIGHT / 2, WHITE, 40)
+                write_text('2', WIDTH / 2 - 10, HEIGHT / 2, WHITE, 50)
             elif counter >= 120 and counter < 180:
+                menuSong.stop()
+                ready = pygame.mixer.Sound( pathAudio  + 'getready.ogg')
+                ready.play()
                 write_text('1', WIDTH / 2 - 10, HEIGHT / 2, WHITE, 50)
                 write_text('READY', WIDTH / 3 + 10, HEIGHT / 4, WHITE, 20)
             elif counter > 180:

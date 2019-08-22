@@ -12,6 +12,7 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
+PURPLE = (221, 160, 221)
 
 pygame.init()
 pygame.mixer.init()
@@ -64,7 +65,8 @@ def init_menu():
                 write_text('Or Escape to quit !', WIDTH / 4 + 10, HEIGHT / 2 + 40, WHITE)
             write_text('made by Steven Chiffe', WIDTH / 4 + 20, HEIGHT - 10, WHITE, 8)
         clock.tick(FPS)
-        pygame.display.update()
+        pygame.display.update()  
+    # chooseYourShip()
     launch_game()
 
 def write_text(message, x, y, color, fontSize = 12):
@@ -72,8 +74,41 @@ def write_text(message, x, y, color, fontSize = 12):
     text, rect = GAME_FONT.render(message, color)
     screen.blit(text, (x, y))
 
+
+# def chooseYourShip():
+#     Numbership = 0
+#     count = 1
+#     while True:
+#         ship = pygame.image.load(pathImage + "Ship/ship" + str(Numbership) + ".png")
+#         background = pygame.image.load(pathImage + "Background/background" + str(math.floor(count / 10)) + ".gif")
+#         count = count + 1
+#         if count == 150:
+#             count = 1
+#         screen.blit(background , (0, 0))
+#         screen.blit(ship,(WIDTH / 2 - (ship.get_size()[0] / 2), HEIGHT / 2))
+#         write_text("Ship number " + str(Numbership), WIDTH / 3 - 10, HEIGHT / 2 + 100, PURPLE)
+#         write_text("Press enter to go", WIDTH / 3 - 30, HEIGHT / 2 + 130, PURPLE)
+#         event = pygame.event.poll()
+#         if event.type == pygame.KEYDOWN:
+#             if event.key == pygame.K_ESCAPE:
+#                 pygame.quit()
+#                 quit()
+#             elif event.key  ==  pygame.K_LEFT:
+#                 if Numbership != 2:
+#                     Numbership =  Numbership + 1
+#             elif event.key  ==  pygame.K_RIGHT:
+#                 if  Numbership != 0:
+#                     Numbership =  Numbership - 1
+#         elif event.type == pygame.QUIT:
+#             pygame.quit()
+#             quit()
+#         clock.tick(FPS)
+#         pygame.display.update()   
+
+
+
 def launch_game():
-    ship = pygame.image.load(pathImage + "ship.png")
+    ship = pygame.image.load(pathImage + "Ship/ship2.png")
     ship = pygame.transform.scale(ship, (50, 38))
     player = Player(ship)
     count = 1

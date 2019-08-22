@@ -37,7 +37,7 @@ def init_menu():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
                 start = True
-            elif event.key == pygame.K_q:
+            elif event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 quit()
         elif event.type == pygame.QUIT:
@@ -58,16 +58,65 @@ def init_menu():
                 break
             counter = counter + 1
         else:
-            write_text('RETRO SHOOTER', WIDTH / 4, HEIGHT / 4, WHITE, 18)
+            write_text('RETRO SHOOTER', WIDTH / 4 - 10, HEIGHT / 4, WHITE, 18)
             if count / 2 - 10 < 30:
                 write_text('Press Enter To Play', WIDTH / 4, HEIGHT / 2, WHITE)
+                write_text('Or Escape to quit !', WIDTH / 4 + 10, HEIGHT / 2 + 40, WHITE)
             write_text('made by Steven Chiffe', WIDTH / 4 + 20, HEIGHT - 10, WHITE, 8)
         clock.tick(FPS)
         pygame.display.update()
+    launch_game()
 
 def write_text(message, x, y, color, fontSize = 12):
     GAME_FONT = pygame.freetype.Font("Assets/font/8-BIT WONDER.TTF", fontSize)
     text, rect = GAME_FONT.render(message, color)
     screen.blit(text, (x, y))
 
+def launch_game():
+    player = Player()
+    ship = pygame.image.load(pathImage + "ship.png")
+    ship = pygame.transform.scale(ship, (50, 38))
+    print(ship)
+    count = 1
+    while True:
+        background = pygame.image.load(pathImage + "Background/background" + str(math.floor(count / 10)) + ".gif")
+        count = count + 1
+        if count == 150:
+            count = 1
+        screen.blit(background , (0, 0))
+        screen.blit(ship, (player.getX(), player.getY()))
+        event = pygame.event.poll()
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            player.updateMovement("left")
+        if keys[pygame.K_RIGHT]:
+            player.updateMovement("right") 
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                quit()
+        elif event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+        clock.tick(FPS)
+        pygame.display.update()     
+
+class Player:
+    def __init__(self):
+        self.x = WIDTH / 2
+        self.y = HEIGHT - 50
+        self.lives = 3
+        self.speed = 2
+    
+    def getX(self):
+        return self.x
+    
+    def getY(self):
+        return self.y
+    
+    def updateMovement(self, where):
+        if(where == "right"):
+            self.x = self.x + self.speed
+        else:
+            self.x = self.x - self.speed
 init_menu()

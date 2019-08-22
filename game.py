@@ -73,10 +73,9 @@ def write_text(message, x, y, color, fontSize = 12):
     screen.blit(text, (x, y))
 
 def launch_game():
-    player = Player()
     ship = pygame.image.load(pathImage + "ship.png")
     ship = pygame.transform.scale(ship, (50, 38))
-    print(ship)
+    player = Player(ship)
     count = 1
     while True:
         background = pygame.image.load(pathImage + "Background/background" + str(math.floor(count / 10)) + ".gif")
@@ -102,11 +101,13 @@ def launch_game():
         pygame.display.update()     
 
 class Player:
-    def __init__(self):
+    def __init__(self, ship_sprite):
         self.x = WIDTH / 2
         self.y = HEIGHT - 50
         self.lives = 3
-        self.speed = 2
+        self.speed = 2.2
+        self.width = ship_sprite.get_size()[0]
+        self.height = ship_sprite.get_size()[1]
     
     def getX(self):
         return self.x
@@ -116,7 +117,9 @@ class Player:
     
     def updateMovement(self, where):
         if(where == "right"):
-            self.x = self.x + self.speed
+            if(self.width +  self.x  < WIDTH):
+                self.x = self.x + self.speed
         else:
-            self.x = self.x - self.speed
+            if(self.x > 0):
+                self.x = self.x - self.speed
 init_menu()

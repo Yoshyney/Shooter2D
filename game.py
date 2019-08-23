@@ -150,18 +150,23 @@ def launch_game(numbership):
             pygame.quit()
             quit()
         clock.tick(FPS)
-        boundaries(player, meteor, bullet)
+        boundaries(player, meteors, weapon)
         weapon.update()
         meteors.update()
         pygame.display.update()     
 
-def boundaries(player, meteor, bullet):
-    for x in meteor:
-        print(x)
-        if (player.getX() + player.width > x[0] and player.getX() < x[0]) or (player.getX() + player.width > x[0] + x[4] and player.getX() < x[0] + x[4]):
-            if player.getY() > x[1] and  x[1] > player.getY() - player.height + 25:
+def boundaries(player, meteors, weapon):
+    for x in meteors.meteors:
+        if (player.getX() + player.width > x[0] and player.getX() < x[0]) or (player.getX() + player.width > x[0] + x[4] and player.getX() < x[0] + x[4]) or (player.getX() + player.width > x[0] and (player.getX() < x[0] + x[4] / 2 or player.getX() < x[0] + x[4] / 3)):
+            if player.getY() > x[1] and x[5] <= 60 and x[1] > player.getY() - player.height + 25 or player.getY() > x[1] and x[5] >= 60 and x[1] > player.getY() - player.height - 25:
                 print("Boom")
-                quit() 
+                quit()
+        for y in weapon.bullets:
+            if (x[0] < y[0] and x[0] + x[4] > y[0]) or (x[0] < y[0] + weapon.width and x[0] + x[4] > y[0] + weapon.width):
+                if y[1] + weapon.height < x[1] and ((x[1] - x[5] < y[1]) or (x[1] - x[5] < y[1] + weapon.height)):
+                    meteors.meteors.remove(x)
+                    weapon.bullets.remove(y)
+
 class Player:
     def __init__(self, ship_sprite):
         self.x = WIDTH / 2
@@ -194,6 +199,8 @@ class Weapon:
         self.shoot = True
         self.speed = 6
         self.distance = 150
+        self.width = pygame.image.load(pathImage  +  "Weapon/laser0.png").get_size()[0]
+        self.height =  pygame.image.load(pathImage  +  "Weapon/laser0.png").get_size()[0]
     
     def pioupiou(self):
         if self.shoot and self.number == 1:
@@ -228,9 +235,14 @@ class Weapon:
         if len(self.bullets) != 0:
             if self.bullets[0][1] < -40:
                 del self.bullets[0]
+        if len(self.bullets) == 0:
+            self.shoot = True
             
     def getBullets(self):
         return self.bullets
+    
+    def setBullets(self, tab):
+        self.bullets = tab
 
 class Meteors:
     def __init__(self):
@@ -259,11 +271,14 @@ class Meteors:
         for x in tab:
             self.meteors.pop(x - y)
             y = y - 1
-        if len(self.meteors) < 9:
-            self.generation(9 - len(self.meteors))
+        if len(self.meteors) < 10:
+            self.generation(10 - len(self.meteors))
 
 
     def getMeteors(self):
         return self.meteors
+    
+    def setMeteors(self, tab):
+        self.meteors = tab
 # init_menu()
 launch_game(2)

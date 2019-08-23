@@ -134,8 +134,7 @@ def launch_game(numbership):
             for x in bullet:
                 screen.blit(laser, (x[0], x[1]))
         for x in meteor:
-            image = pygame.image.load(pathImage + "meteors/" + x[3] + ".png")
-            screen.blit(image, (x[0], x[1])) 
+            screen.blit(x[3], (x[0], x[1]))
         if keys[pygame.K_LEFT]:
             player.updateMovement("left")
         if keys[pygame.K_RIGHT]:
@@ -151,10 +150,17 @@ def launch_game(numbership):
             pygame.quit()
             quit()
         clock.tick(FPS)
+        boundaries(player, meteor)
         weapon.update()
         meteors.update()
         pygame.display.update()     
 
+def boundaries(player, meteor):
+    for x in meteor:
+        print(x)
+        if player.getX() + player.width > x[0] and player.getX() - 35 < x[0] and player.getY() > x[1] and  x[1] > player.getY() - player.height + 20:
+            print("Boom")
+            quit() 
 class Player:
     def __init__(self, ship_sprite):
         self.x = WIDTH / 2
@@ -228,14 +234,15 @@ class Weapon:
 class Meteors:
     def __init__(self):
         self.meteors = []
-        self.meteorpossible = ["meteor0", "meteor1", "meteor2"]
+        self.meteorpossible = ["meteor0", "meteor1", "meteor2","meteor3", "meteor4", "meteor5", "meteor6"]
         self.generation()
         
     def generation(self, range_ = 10):
         for x in range(1 , range_):
             Meteor = random.choice(self.meteorpossible)
-            meteorX = pygame.image.load(pathImage + "meteors/" + Meteor + ".png").get_size()[0]
-            meteorY = pygame.image.load(pathImage + "meteors/" + Meteor  + ".png").get_size()[1]
+            Meteor = pygame.image.load(pathImage + "meteors/" + Meteor + ".png")
+            meteorX = Meteor.get_size()[0]
+            meteorY = Meteor.get_size()[1]
             PositionX = random.randrange(0, WIDTH - meteorX)
             PositionY = random.randrange(-300, -100)
             Speed = random.randrange(3 , 7)

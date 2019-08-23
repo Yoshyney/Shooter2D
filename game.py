@@ -118,6 +118,7 @@ def launch_game(numbership):
     player = Player(ship)
     weapon = Weapon(player)
     meteors = Meteors()
+    score = 0
     count = 1
     while True:
         background = pygame.image.load(pathImage + "Background/background" + str(math.floor(count / 10)) + ".gif")
@@ -126,6 +127,7 @@ def launch_game(numbership):
             count = 1
         screen.blit(background , (0, 0))
         screen.blit(ship, (player.getX(), player.getY()))
+        write_text(str(score), WIDTH / 2, 10, PURPLE)
         event = pygame.event.poll()
         keys = pygame.key.get_pressed()
         bullet = weapon.getBullets()
@@ -150,12 +152,12 @@ def launch_game(numbership):
             pygame.quit()
             quit()
         clock.tick(FPS)
-        boundaries(player, meteors, weapon)
+        score = boundaries(player, meteors, weapon, score)
         weapon.update()
-        meteors.update()
+        meteors.update(score)
         pygame.display.update()     
 
-def boundaries(player, meteors, weapon):
+def boundaries(player, meteors, weapon, score):
     for x in meteors.meteors:
         if (player.getX() + player.width > x[0] and player.getX() < x[0]) or (player.getX() + player.width > x[0] + x[4] and player.getX() < x[0] + x[4]) or (player.getX() + player.width > x[0] and (player.getX() < x[0] + x[4] / 2 or player.getX() < x[0] + x[4] / 3)):
             if player.getY() > x[1] and x[5] <= 60 and x[1] > player.getY() - player.height + 25 or player.getY() > x[1] and x[5] >= 60 and x[1] > player.getY() - player.height - 25:
@@ -163,9 +165,12 @@ def boundaries(player, meteors, weapon):
                 quit()
         for y in weapon.bullets:
             if (x[0] < y[0] and x[0] + x[4] > y[0]) or (x[0] < y[0] + weapon.width and x[0] + x[4] > y[0] + weapon.width):
+                # correction to do on the impact of the bullet 
                 if y[1] + weapon.height < x[1] and ((x[1] - x[5] < y[1]) or (x[1] - x[5] < y[1] + weapon.height)):
+                    score = score + math.floor(x[5] / 10)
                     meteors.meteors.remove(x)
                     weapon.bullets.remove(y)
+    return score
 
 class Player:
     def __init__(self, ship_sprite):
@@ -249,6 +254,8 @@ class Meteors:
         self.meteors = []
         self.meteorpossible = ["meteor0", "meteor1", "meteor2","meteor3", "meteor4", "meteor5", "meteor6"]
         self.generation()
+        self.add = 10
+        self.more = 100
         
     def generation(self, range_ = 10):
         for x in range(1 , range_):
@@ -261,7 +268,7 @@ class Meteors:
             Speed = random.randrange(3 , 7)
             self.meteors.append([PositionX, PositionY , Speed, Meteor, meteorX, meteorY])
     
-    def update(self):
+    def update(self, score):
         tab = []
         for x in range(0 , len(self.meteors)):
             self.meteors[x][1] = self.meteors[x][1] + self.meteors[x][2]
@@ -271,8 +278,11 @@ class Meteors:
         for x in tab:
             self.meteors.pop(x - y)
             y = y - 1
-        if len(self.meteors) < 10:
-            self.generation(10 - len(self.meteors))
+        if score > self.more:
+            self.add  = self.add + 1
+            self.more =  self.more + 100
+        if len(self.meteors) < self.add:
+            self.generation(self.add - len(self.meteors))
 
 
     def getMeteors(self):

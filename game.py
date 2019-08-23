@@ -150,12 +150,12 @@ def launch_game(numbership):
             pygame.quit()
             quit()
         clock.tick(FPS)
-        boundaries(player, meteor)
+        boundaries(player, meteor, bullet)
         weapon.update()
         meteors.update()
         pygame.display.update()     
 
-def boundaries(player, meteor):
+def boundaries(player, meteor, bullet):
     for x in meteor:
         print(x)
         if player.getX() + player.width > x[0] and player.getX() - 35 < x[0] and player.getY() > x[1] and  x[1] > player.getY() - player.height + 20:
@@ -264,4 +264,4 @@ class Meteors:
 
     def getMeteors(self):
         return self.meteors
-launch_game(2)
+init_menu()

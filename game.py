@@ -158,9 +158,10 @@ def launch_game(numbership):
 def boundaries(player, meteor, bullet):
     for x in meteor:
         print(x)
-        if player.getX() + player.width > x[0] and player.getX() - 35 < x[0] and player.getY() > x[1] and  x[1] > player.getY() - player.height + 20:
-            print("Boom")
-            quit() 
+        if (player.getX() + player.width > x[0] and player.getX() < x[0]) or (player.getX() + player.width > x[0] + x[4] and player.getX() < x[0] + x[4]):
+            if player.getY() > x[1] and  x[1] > player.getY() - player.height + 25:
+                print("Boom")
+                quit() 
 class Player:
     def __init__(self, ship_sprite):
         self.x = WIDTH / 2
@@ -246,7 +247,7 @@ class Meteors:
             PositionX = random.randrange(0, WIDTH - meteorX)
             PositionY = random.randrange(-300, -100)
             Speed = random.randrange(3 , 7)
-            self.meteors.append([PositionX, PositionY , Speed, Meteor])
+            self.meteors.append([PositionX, PositionY , Speed, Meteor, meteorX, meteorY])
     
     def update(self):
         tab = []
@@ -264,4 +265,5 @@ class Meteors:
 
     def getMeteors(self):
         return self.meteors
-init_menu()
+# init_menu()
+launch_game(2)

@@ -126,8 +126,8 @@ def launch_game(numbership):
         if count == 150:
             count = 1
         screen.blit(background , (0, 0))
-        screen.blit(ship, (player.getX(), player.getY()))
         write_text(str(score), WIDTH / 2, 10, PURPLE)
+        screen.blit(ship, (player.getX(), player.getY()))
         event = pygame.event.poll()
         keys = pygame.key.get_pressed()
         bullet = weapon.getBullets()
@@ -161,17 +161,30 @@ def boundaries(player, meteors, weapon, score):
     for x in meteors.meteors:
         if (player.getX() + player.width > x[0] and player.getX() < x[0]) or (player.getX() + player.width > x[0] + x[4] and player.getX() < x[0] + x[4]) or (player.getX() + player.width > x[0] and (player.getX() < x[0] + x[4] / 2 or player.getX() < x[0] + x[4] / 3)):
             if player.getY() > x[1] and x[5] <= 60 and x[1] > player.getY() - player.height + 25 or player.getY() > x[1] and x[5] >= 60 and x[1] > player.getY() - player.height - 25:
-                print("Boom")
-                quit()
+                launch_game(2)
         for y in weapon.bullets:
             if (x[0] < y[0] and x[0] + x[4] > y[0]) or (x[0] < y[0] + weapon.width and x[0] + x[4] > y[0] + weapon.width):
                 # correction to do on the impact of the bullet 
                 if y[1] + weapon.height < x[1] and ((x[1] - x[5] < y[1]) or (x[1] - x[5] < y[1] + weapon.height)):
                     score = score + math.floor(x[5] / 10)
+                    Explosion(x[4], x[5], x[0], x[1])
                     meteors.meteors.remove(x)
                     weapon.bullets.remove(y)
     return score
 
+class Explosion:
+    def __init__(self, x, y , positionX, positionY):
+        self.positionX = positionX
+        self.positionY = positionY
+        self.x = x
+        self.y = y
+        self.boom()
+
+    def boom(self):
+        for x in range(0, 12):
+                    self.image = pygame.image.load(pathImage + "Explosion/explosion" + str(x) + ".png")
+                    self.image = pygame.transform.scale(self.image, (self.x, self.y))
+                    screen.blit(self.image, (self.positionX, self.positionY))
 class Player:
     def __init__(self, ship_sprite):
         self.x = WIDTH / 2
@@ -199,7 +212,7 @@ class Weapon:
 
     def __init__(self, Player):
         self.Player = Player
-        self.number = 1
+        self.number = 3
         self.bullets = []
         self.shoot = True
         self.speed = 6
@@ -254,10 +267,10 @@ class Meteors:
         self.meteors = []
         self.meteorpossible = ["meteor0", "meteor1", "meteor2","meteor3", "meteor4", "meteor5", "meteor6"]
         self.generation()
-        self.add = 10
+        self.add = 8
         self.more = 100
         
-    def generation(self, range_ = 10):
+    def generation(self, range_ = 8):
         for x in range(1 , range_):
             Meteor = random.choice(self.meteorpossible)
             Meteor = pygame.image.load(pathImage + "meteors/" + Meteor + ".png")

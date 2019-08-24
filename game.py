@@ -158,9 +158,11 @@ def launch_game(numbership):
         pygame.display.update()     
 
 def boundaries(player, meteors, weapon, score):
+    lose = pygame.mixer.Sound( pathAudio  + 'sfx_lose.ogg')
     for x in meteors.meteors:
         if (player.getX() + player.width > x[0] and player.getX() < x[0]) or (player.getX() + player.width > x[0] + x[4] and player.getX() < x[0] + x[4]) or (player.getX() + player.width > x[0] and (player.getX() < x[0] + x[4] / 2 or player.getX() < x[0] + x[4] / 3)):
             if player.getY() > x[1] and x[5] <= 60 and x[1] > player.getY() - player.height + 25 or player.getY() > x[1] and x[5] >= 60 and x[1] > player.getY() - player.height - 25:
+                lose.play()
                 launch_game(2)
         for y in weapon.bullets:
             if (x[0] < y[0] and x[0] + x[4] > y[0]) or (x[0] < y[0] + weapon.width and x[0] + x[4] > y[0] + weapon.width):
@@ -185,6 +187,14 @@ class Explosion:
                     self.image = pygame.image.load(pathImage + "Explosion/explosion" + str(x) + ".png")
                     self.image = pygame.transform.scale(self.image, (self.x, self.y))
                     screen.blit(self.image, (self.positionX, self.positionY))
+
+# class Power_up:
+#     def __init__(self, weapon, player):
+#         self.speed = 2
+    
+#     def is_falling(self):
+
+
 class Player:
     def __init__(self, ship_sprite):
         self.x = WIDTH / 2
@@ -303,5 +313,5 @@ class Meteors:
     
     def setMeteors(self, tab):
         self.meteors = tab
-init_menu()
-# launch_game(2)
+# init_menu()
+launch_game(2)

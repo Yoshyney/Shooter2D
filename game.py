@@ -177,6 +177,13 @@ def boundaries(player, meteors, weapon, score, power):
                     power.is_falling(x[0], x[1])
                     meteors.meteors.remove(x)
                     weapon.bullets.remove(y)
+    for power_ in power.powers:
+        powerX = power_[2].get_size()[0]
+        powerY = power_[2].get_size()[1]
+        if(player.getX() + player.width > power_[0] and player.getX() < power_[0]) or (player.getX() + player.width + power_[0] + powerX and player.getX() < power_[0] + powerX):
+            if player.getY() > power_[1] and power_[1] > player.getY() - player.height + 25 or player.getY() > power_[1] - powerY and power_[1] - powerY > player.getY() - player.height:
+                power.encounter()
+        
     return score
 
 class Explosion:
@@ -202,7 +209,7 @@ class Power_up:
         self.powers = []
 
     def is_falling(self, x , y):
-        if random.randrange(0, 100) < 5 and len(self.powers) == 0:
+        if random.randrange(0, 100) < 10 and len(self.powers) == 0:
             power = random.choice(self.power)
             image = pygame.image.load(pathImage + "Power/" + power + ".png")
             self.powers.append([x, y , image, power])
@@ -214,11 +221,11 @@ class Power_up:
                 self.powers.pop(0)
 
     def encounter(self):
-        if self.powers[0][4] == "pill_amo":
+        if self.powers[0][3] == "pill_amo":
             self.Weapon.number = self.Weapon.number + 1
-        elif self.powers[0][4] == "pill_speedamo":
+        elif self.powers[0][3] == "pill_speedamo":
             self.Weapon.speed = self.Weapon.speed + 1
-        elif self.powers[0][4] == "pill_speed":
+        elif self.powers[0][3] == "pill_speed":
             self.Player.speed = self.Player.speed + 1
         self.powers.pop(0)
 

@@ -118,6 +118,7 @@ def launch_game(numbership):
     player = Player(ship)
     weapon = Weapon(player)
     meteors = Meteors()
+    power = Power_up(weapon, player)
     score = 0
     count = 1
     while True:
@@ -137,6 +138,8 @@ def launch_game(numbership):
                 screen.blit(laser, (x[0], x[1]))
         for x in meteor:
             screen.blit(x[3], (x[0], x[1]))
+        for x in power.powers:
+            screen.blit(x[2], (x[0], x[1]))
         if keys[pygame.K_LEFT]:
             player.updateMovement("left")
         if keys[pygame.K_RIGHT]:
@@ -152,12 +155,13 @@ def launch_game(numbership):
             pygame.quit()
             quit()
         clock.tick(FPS)
-        score = boundaries(player, meteors, weapon, score)
+        score = boundaries(player, meteors, weapon, score, power)
         weapon.update()
+        power.update()
         meteors.update(score)
         pygame.display.update()     
 
-def boundaries(player, meteors, weapon, score):
+def boundaries(player, meteors, weapon, score, power):
     lose = pygame.mixer.Sound( pathAudio  + 'sfx_lose.ogg')
     for x in meteors.meteors:
         if (player.getX() + player.width > x[0] and player.getX() < x[0]) or (player.getX() + player.width > x[0] + x[4] and player.getX() < x[0] + x[4]) or (player.getX() + player.width > x[0] and (player.getX() < x[0] + x[4] / 2 or player.getX() < x[0] + x[4] / 3)):
@@ -170,6 +174,7 @@ def boundaries(player, meteors, weapon, score):
                 if y[1] + weapon.height < x[1] and ((x[1] - x[5] < y[1]) or (x[1] - x[5] < y[1] + weapon.height)):
                     score = score + math.floor(x[5] / 10)
                     Explosion(x[4], x[5], x[0], x[1])
+                    power.is_falling(x[0], x[1])
                     meteors.meteors.remove(x)
                     weapon.bullets.remove(y)
     return score
@@ -188,12 +193,34 @@ class Explosion:
                     self.image = pygame.transform.scale(self.image, (self.x, self.y))
                     screen.blit(self.image, (self.positionX, self.positionY))
 
-# class Power_up:
-#     def __init__(self, weapon, player):
-#         self.speed = 2
-    
-#     def is_falling(self):
+class Power_up:
+    def __init__(self, weapon, player):
+        self.speed = 2
+        self.power = ["pill_amo", "pill_speedamo", "pill_speed"]
+        self.Weapon = weapon
+        self.Player = player
+        self.powers = []
 
+    def is_falling(self, x , y):
+        if random.randrange(0, 100) < 5 and len(self.powers) == 0:
+            power = random.choice(self.power)
+            image = pygame.image.load(pathImage + "Power/" + power + ".png")
+            self.powers.append([x, y , image, power])
+
+    def update(self):
+        if len(self.powers) != 0:
+            self.powers[0][1] = self.powers[0][1] + self.speed
+            if self.powers[0][1] > HEIGHT + 10:
+                self.powers.pop(0)
+
+    def encounter(self):
+        if self.powers[0][4] == "pill_amo":
+            self.Weapon.number = self.Weapon.number + 1
+        elif self.powers[0][4] == "pill_speedamo":
+            self.Weapon.speed = self.Weapon.speed + 1
+        elif self.powers[0][4] == "pill_speed":
+            self.Player.speed = self.Player.speed + 1
+        self.powers.pop(0)
 
 class Player:
     def __init__(self, ship_sprite):
@@ -222,7 +249,7 @@ class Weapon:
 
     def __init__(self, Player):
         self.Player = Player
-        self.number = 1
+        self.number = 3
         self.bullets = []
         self.shoot = True
         self.speed = 6

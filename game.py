@@ -144,13 +144,13 @@ def launch_game(numbership):
             player.updateMovement("left")
         if keys[pygame.K_RIGHT]:
             player.updateMovement("right") 
+        if keys[pygame.K_SPACE]:
+            if(weapon.pioupiou()):
+                piou.play()    
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
-                quit()
-            elif event.key == pygame.K_SPACE:
-                if(weapon.pioupiou()):
-                    piou.play()      
+                quit()     
         elif event.type == pygame.QUIT:
             pygame.quit()
             quit()
@@ -175,6 +175,8 @@ def boundaries(player, meteors, weapon, score, power):
                     score = score + math.floor(x[5] / 10)
                     Explosion(x[4], x[5], x[0], x[1])
                     power.is_falling(x[0], x[1])
+                    if not weapon.shoot:
+                        weapon.addDelay(y[1])
                     meteors.meteors.remove(x)
                     weapon.bullets.remove(y)
     for power_ in power.powers:
@@ -182,8 +184,7 @@ def boundaries(player, meteors, weapon, score, power):
         powerY = power_[2].get_size()[1]
         if(player.getX() + player.width > power_[0] and player.getX() < power_[0]) or (player.getX() + player.width + power_[0] + powerX and player.getX() < power_[0] + powerX):
             if player.getY() > power_[1] and power_[1] > player.getY() - player.height + 25 or player.getY() > power_[1] - powerY and power_[1] - powerY > player.getY() - player.height:
-                power.encounter()
-        
+                power.encounter()      
     return score
 
 class Explosion:
@@ -223,6 +224,8 @@ class Power_up:
     def encounter(self):
         if self.powers[0][3] == "pill_amo":
             self.Weapon.number = self.Weapon.number + 1
+            if self.Weapon.number == 3:
+                self.power.remove("pill_amo")
         elif self.powers[0][3] == "pill_speedamo":
             self.Weapon.speed = self.Weapon.speed + 1
         elif self.powers[0][3] == "pill_speed":
@@ -256,8 +259,9 @@ class Weapon:
 
     def __init__(self, Player):
         self.Player = Player
-        self.number = 3
+        self.number = 2
         self.bullets = []
+        self.stock = []
         self.shoot = True
         self.speed = 6
         self.distance = 150
@@ -297,9 +301,20 @@ class Weapon:
         if len(self.bullets) != 0:
             if self.bullets[0][1] < -40:
                 del self.bullets[0]
-        if len(self.bullets) == 0:
-            self.shoot = True
-            
+        if self.stock != 0:
+            self.addDelay(0)
+    
+    def addDelay(self, y):
+        if y != 0:
+            if len(self.stock) == 0:
+                self.stock.append(y)
+            if len(self.stock) == 1:
+                self.stock[0]  = self.stock[0] - self.speed
+                if self.stock[0] > self.distance:
+                    self.shoot = True
+                    self.stock = []
+
+
     def getBullets(self):
         return self.bullets
     

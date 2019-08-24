@@ -212,7 +212,7 @@ class Weapon:
 
     def __init__(self, Player):
         self.Player = Player
-        self.number = 3
+        self.number = 1
         self.bullets = []
         self.shoot = True
         self.speed = 6
@@ -303,5 +303,5 @@ class Meteors:
     
     def setMeteors(self, tab):
         self.meteors = tab
-# init_menu()
-launch_game(2)
+init_menu()
+# launch_game(2)

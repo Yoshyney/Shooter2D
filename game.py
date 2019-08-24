@@ -118,7 +118,7 @@ def launch_game(numbership):
     player = Player(ship)
     weapon = Weapon(player)
     meteors = Meteors()
-    power = Power_up(weapon, player)
+    power = Power_up(weapon, player, meteors)
     score = 0
     count = 1
     while True:
@@ -128,7 +128,6 @@ def launch_game(numbership):
             count = 1
         screen.blit(background , (0, 0))
         write_text(str(score), WIDTH / 2, 10, PURPLE)
-        screen.blit(ship, (player.getX(), player.getY()))
         event = pygame.event.poll()
         keys = pygame.key.get_pressed()
         bullet = weapon.getBullets()
@@ -140,6 +139,7 @@ def launch_game(numbership):
             screen.blit(x[3], (x[0], x[1]))
         for x in power.powers:
             screen.blit(x[2], (x[0], x[1]))
+        screen.blit(ship, (player.getX(), player.getY()))
         if keys[pygame.K_LEFT]:
             player.updateMovement("left")
         if keys[pygame.K_RIGHT]:
@@ -184,7 +184,7 @@ def boundaries(player, meteors, weapon, score, power):
         powerY = power_[2].get_size()[1]
         if(player.getX() + player.width > power_[0] and player.getX() < power_[0]) or (player.getX() + player.width + power_[0] + powerX and player.getX() < power_[0] + powerX):
             if player.getY() > power_[1] and power_[1] > player.getY() - player.height + 25 or player.getY() > power_[1] - powerY and power_[1] - powerY > player.getY() - player.height:
-                power.encounter()      
+                score = power.encounter(score)      
     return score
 
 class Explosion:
@@ -202,18 +202,25 @@ class Explosion:
                     screen.blit(self.image, (self.positionX, self.positionY))
 
 class Power_up:
-    def __init__(self, weapon, player):
+    def __init__(self, weapon, player, meteor):
         self.speed = 2
         self.power = ["pill_amo", "pill_speedamo", "pill_speed"]
+        self.bold = ["bronze", 'silver', "gold"]
         self.Weapon = weapon
         self.Player = player
+        self.Meteors = meteor
         self.powers = []
 
     def is_falling(self, x , y):
-        if random.randrange(0, 100) < 10 and len(self.powers) == 0:
+        randomized = random.randrange(0, 100)
+        if randomized < 10 and len(self.powers) == 0:
             power = random.choice(self.power)
             image = pygame.image.load(pathImage + "Power/" + power + ".png")
             self.powers.append([x, y , image, power])
+        if (randomized == 42 or randomized == 84) and len(self.powers) == 0:
+            bolt = random.choice(self.bold)
+            image = pygame.image.load(pathImage + "Power/bolt_" + bolt + ".png")
+            self.powers.append([x, y , image, bolt])
 
     def update(self):
         if len(self.powers) != 0:
@@ -221,7 +228,7 @@ class Power_up:
             if self.powers[0][1] > HEIGHT + 10:
                 self.powers.pop(0)
 
-    def encounter(self):
+    def encounter(self, score):
         if self.powers[0][3] == "pill_amo":
             self.Weapon.number = self.Weapon.number + 1
             if self.Weapon.number == 3:
@@ -230,7 +237,26 @@ class Power_up:
             self.Weapon.speed = self.Weapon.speed + 1
         elif self.powers[0][3] == "pill_speed":
             self.Player.speed = self.Player.speed + 1
+        if self.powers[0][3] == "bronze" or self.powers[0][3] == "silver" or self.powers[0][3] == "gold":
+            if self.powers[0][3] == "bronze":
+                toDestroy = math.ceil(len(self.Meteors.meteors) / 3)
+            elif self.powers[0][3] == "silver":
+                toDestroy = math.ceil(len(self.Meteors.meteors) / 2)
+            else:
+                toDestroy = len(self.Meteors.meteors)
+            count = 0
+            tab = []
+            for x in self.Meteors.meteors:
+                if count == toDestroy:
+                    break
+                Explosion(x[4], x[5], x[0], x[1])
+                score = score + math.floor(x[5] / 10)
+                tab.append(x)
+                count = count + 1
+            for x in tab:
+               self.Meteors.meteors.remove(x)             
         self.powers.pop(0)
+        return score
 
 class Player:
     def __init__(self, ship_sprite):

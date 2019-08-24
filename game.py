@@ -163,6 +163,7 @@ def launch_game(numbership):
 
 def boundaries(player, meteors, weapon, score, power):
     lose = pygame.mixer.Sound( pathAudio  + 'sfx_lose.ogg')
+    bolt = pygame.mixer.Sound( pathAudio  + 'sfx_zap.ogg')
     for x in meteors.meteors:
         if (player.getX() + player.width > x[0] and player.getX() < x[0]) or (player.getX() + player.width > x[0] + x[4] and player.getX() < x[0] + x[4]) or (player.getX() + player.width > x[0] and (player.getX() < x[0] + x[4] / 2 or player.getX() < x[0] + x[4] / 3)):
             if player.getY() > x[1] and x[5] <= 60 and x[1] > player.getY() - player.height + 25 or player.getY() > x[1] and x[5] >= 60 and x[1] > player.getY() - player.height - 25:
@@ -184,7 +185,7 @@ def boundaries(player, meteors, weapon, score, power):
         powerY = power_[2].get_size()[1]
         if(player.getX() + player.width > power_[0] and player.getX() < power_[0]) or (player.getX() + player.width + power_[0] + powerX and player.getX() < power_[0] + powerX):
             if player.getY() > power_[1] and power_[1] > player.getY() - player.height + 25 or player.getY() > power_[1] - powerY and power_[1] - powerY > player.getY() - player.height:
-                score = power.encounter(score)      
+                score = power.encounter(score, bolt)
     return score
 
 class Explosion:
@@ -228,7 +229,8 @@ class Power_up:
             if self.powers[0][1] > HEIGHT + 10:
                 self.powers.pop(0)
 
-    def encounter(self, score):
+    def encounter(self, score, zicmu):
+        item = pygame.mixer.Sound( pathAudio  + 'sfx_item.ogg')
         if self.powers[0][3] == "pill_amo":
             self.Weapon.number = self.Weapon.number + 1
             if self.Weapon.number == 3:
@@ -254,7 +256,11 @@ class Power_up:
                 tab.append(x)
                 count = count + 1
             for x in tab:
-               self.Meteors.meteors.remove(x)             
+               self.Meteors.meteors.remove(x)
+            zicmu.play()    
+            self.powers.pop(0)
+            return score
+        item.play()
         self.powers.pop(0)
         return score
 

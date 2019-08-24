@@ -150,7 +150,9 @@ def launch_game(numbership):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
-                quit()     
+                quit()
+            elif event.type == pygame.K_p:
+                Pause_Menu(numbership)
         elif event.type == pygame.QUIT:
             pygame.quit()
             quit()
@@ -176,9 +178,10 @@ def boundaries(player, meteors, weapon, score, power):
                     score = score + math.floor(x[5] / 10)
                     Explosion(x[4], x[5], x[0], x[1])
                     power.is_falling(x[0], x[1])
-                    if not weapon.shoot:
-                        weapon.addDelay(y[1])
-                    meteors.meteors.remove(x)
+                    if player.getY() - weapon.bullets[len(weapon.bullets) - 1][1] < 150:
+                        weapon.addDelay(weapon.bullets[len(weapon.bullets) - 1][1])
+                    if x in meteors.meteors:
+                        meteors.meteors.remove(x)
                     weapon.bullets.remove(y)
     for power_ in power.powers:
         powerX = power_[2].get_size()[0]
@@ -291,7 +294,7 @@ class Weapon:
 
     def __init__(self, Player):
         self.Player = Player
-        self.number = 2
+        self.number = 3
         self.bullets = []
         self.stock = []
         self.shoot = True
@@ -329,6 +332,7 @@ class Weapon:
         for x in range(0 , len(self.bullets)):
             if x == len(self.bullets) - 1  and self.y - self.bullets[len(self.bullets) - 1][1] > self.distance:
                 self.shoot = True
+                self.stock = []
             self.bullets[x][1] = self.bullets[x][1] - self.speed
         if len(self.bullets) != 0:
             if self.bullets[0][1] < -40:
@@ -337,14 +341,13 @@ class Weapon:
             self.addDelay(0)
     
     def addDelay(self, y):
-        if y != 0:
-            if len(self.stock) == 0:
-                self.stock.append(y)
-            if len(self.stock) == 1:
-                self.stock[0]  = self.stock[0] - self.speed
-                if self.stock[0] > self.distance:
-                    self.shoot = True
-                    self.stock = []
+        if len(self.stock) == 0 and y != 0:
+            self.stock.append(y)
+        if len(self.stock) == 1:
+            self.stock[0] = self.stock[0] - self.speed
+            if self.y - self.stock[0] > self.distance:
+                self.shoot = True
+                self.stock = []
 
 
     def getBullets(self):
@@ -376,12 +379,10 @@ class Meteors:
         tab = []
         for x in range(0 , len(self.meteors)):
             self.meteors[x][1] = self.meteors[x][1] + self.meteors[x][2]
-            if self.meteors[x][1] + 10 > HEIGHT:
-                tab.append(x)
-        y = 0
+            if self.meteors[x][1] > HEIGHT + 50:
+                tab.append(self.meteors[x])
         for x in tab:
-            self.meteors.pop(x - y)
-            y = y - 1
+            self.meteors.remove(x)
         if score > self.more:
             self.add  = self.add + 1
             self.more =  self.more + 100
@@ -394,5 +395,15 @@ class Meteors:
     
     def setMeteors(self, tab):
         self.meteors = tab
+
+# class Pause_Menu:
+#     def __init__(self, numbership):
+#         self.pause = True
+#         self.number = numbership
+#         self.Menu()
+    
+#     def Menu(self):
+#         while self.pause:
+
 # init_menu()
 launch_game(2)

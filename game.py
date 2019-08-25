@@ -51,7 +51,6 @@ def init_menu():
         clock.tick(FPS)
         pygame.display.update()  
     chooseYourShip(menuSong)
-    # launch_game()
 
 def write_text(message, x, y, color, fontSize = 12):
     GAME_FONT = pygame.freetype.Font("Assets/font/8-BIT WONDER.TTF", fontSize)
@@ -134,6 +133,7 @@ def launch_game(numbership):
     weapon = Weapon(player)
     meteors = Meteors()
     power = Power_up(weapon, player, meteors)
+    enemy = Enemy()
     score = 0
     count = 1
     while True:
@@ -152,6 +152,10 @@ def launch_game(numbership):
                 screen.blit(laser, (x[0], x[1]))
         for x in meteor:
             screen.blit(x[3], (x[0], x[1]))
+        for x in enemy.enemy:
+            screen.blit(x[2], (x[0], x[1]))
+        for x in enemy.bullets:
+            screen.blit( x[2],(x[0], x[1]))
         for x in power.powers:
             screen.blit(x[2], (x[0], x[1]))
         screen.blit(ship, (player.getX(), player.getY()))
@@ -177,6 +181,7 @@ def launch_game(numbership):
         weapon.update()
         power.update()
         meteors.update(score)
+        enemy.update(score)
         pygame.display.update()
 
 def Menu(numbership):
@@ -411,6 +416,70 @@ class Power_up:
         self.powers.pop(0)
         return score
 
+
+class Enemy:
+    def __init__(self):
+        self.enemyShip = ["enemyBlack_2", "enemyBlue_1", "enemyGreen_1", "enemyRed_3"]
+        self.enemy = []
+        self.bullets = []
+        self.bulletSpeed = 4
+        self.possible = 1
+        self.speedY = 4
+        self.speedX = 5
+        self.value = 500
+        self.bool = True
+        self.last_update = pygame.time.get_ticks()
+        self.updated = pygame.time.get_ticks()
+        self.width = pygame.image.load(pathImage  +  "Weapon/laser1.png").get_size()[0]
+        self.height =  pygame.image.load(pathImage  +  "Weapon/laser1.png").get_size()[0]
+
+    def apparition(self):
+        randomized = random.randrange(0, 100)
+        actual_time = pygame.time.get_ticks()
+        if len(self.enemy) < self.possible and randomized < 25 and actual_time - self.last_update > 5000:
+            Enemy = random.choice(self.enemyShip)
+            lives = Enemy.split("_")[1]
+            Enemy = pygame.image.load(pathImage + "Enemy/" + Enemy + ".png")
+            EnemyX = Enemy.get_size()[0]
+            EnemyY = Enemy.get_size()[1]
+            PositionX = random.randrange(0, WIDTH - EnemyX)
+            PositionY = random.randrange(-300, -100)
+            self.enemy.append([PositionX, PositionY , Enemy, EnemyX, EnemyY, lives])
+            self.last_update = pygame.time.get_ticks()
+
+    def update(self, score):
+        shoot = False
+        for x in self.enemy:
+            if x[1] <  10:
+                x[1] = x[1] + self.speedY
+            else:
+                if(self.bool):
+                    x[0] = x[0] + self.speedX
+                    if x[0] + x[3] >= WIDTH:
+                        self.bool = False
+                else:
+                    x[0] = x[0] - self.speedX
+                    if x[0] <= 0:
+                        self.bool = True
+            actual_time = pygame.time.get_ticks()
+            if actual_time - self.updated > 2000:
+                image = pygame.image.load(pathImage  +  "Weapon/laser1.png")
+                diff = 0
+                for y in range(0, int(x[5])):
+                    self.bullets.append([x[0] + diff, x[1] + 20, image])
+                    diff = diff + 20
+                shoot = True
+        for x in self.bullets:
+            x[1] = x[1] + self.bulletSpeed
+            if x[1] > HEIGHT + 50:
+                self.bullets.remove(x)
+        if score >= self.value:
+            self.possible = self.possible + 1
+            self.value = self.value + self.value
+        if shoot == True:
+            self.updated = pygame.time.get_ticks()
+        self.apparition()
+
 class Player:
     def __init__(self, ship_sprite, numbership):
         self.x = WIDTH / 2
@@ -544,4 +613,5 @@ class Meteors:
     def setMeteors(self, tab):
         self.meteors = tab
     
-init_menu()
+# init_menu()
+launch_game(2)

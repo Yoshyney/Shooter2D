@@ -140,6 +140,8 @@ def launch_game(numbership):
         for x in power.powers:
             screen.blit(x[2], (x[0], x[1]))
         screen.blit(ship, (player.getX(), player.getY()))
+        for x in power.shield_:
+            screen.blit(x[2], (x[0], x[1]))
         if keys[pygame.K_LEFT]:
             player.updateMovement("left")
         if keys[pygame.K_RIGHT]:
@@ -217,11 +219,11 @@ def text_boundaries(Text, x, y):
 def lost_menu(numbership, score):
     pause = True
     stars = 0
-    if score > 10:
+    if score > 500:
         stars = stars + 1
-    if score > 20:
+    if score > 1500:
         stars = stars + 1
-    if score > 30:
+    if score > 5000:
         stars = stars + 1
     while pause:
         event = pygame.event.poll()
@@ -268,11 +270,20 @@ def lost_menu(numbership, score):
 def boundaries(player, meteors, weapon, score, power):
     lose = pygame.mixer.Sound( pathAudio  + 'sfx_lose.ogg')
     bolt = pygame.mixer.Sound( pathAudio  + 'sfx_zap.ogg')
+    shield = pygame.mixer.Sound( pathAudio  + 'sfx_shieldDown.ogg')
     for x in meteors.meteors:
         if (player.getX() + player.width > x[0] and player.getX() < x[0]) or (player.getX() + player.width > x[0] + x[4] and player.getX() < x[0] + x[4]) or (player.getX() + player.width > x[0] and (player.getX() < x[0] + x[4] / 2 or player.getX() < x[0] + x[4] / 3)):
             if player.getY() > x[1] and x[5] <= 60 and x[1] > player.getY() - player.height + 25 or player.getY() > x[1] and x[5] >= 60 and x[1] > player.getY() - player.height - 25:
-                lose.play()
-                lost_menu(2, score)
+                if player.lives > 1:
+                    Explosion(x[4], x[5], x[0], x[1])
+                    if x in meteors.meteors:
+                        meteors.meteors.remove(x)
+                        player.lives = player.lives - 1
+                        power.shield_.pop(0)
+                        shield.play()
+                else :
+                    lose.play()
+                    lost_menu(2, score)
         for y in weapon.bullets:
             if (x[0] < y[0] and x[0] + x[4] > y[0]) or (x[0] < y[0] + weapon.width and x[0] + x[4] > y[0] + weapon.width):
                 # correction to do on the impact of the bullet 
@@ -312,6 +323,10 @@ class Power_up:
         self.speed = 2
         self.power = ["pill_amo", "pill_speedamo", "pill_speed"]
         self.bold = ["bronze", 'silver', "gold"]
+        self.shield = "shield_gold"
+        self.shield_ = []
+        self.image = pygame.image.load(pathImage  +  "shield/shield3.png")
+        self.shield_image = pygame.transform.scale(self.image, (50, 38))
         self.Weapon = weapon
         self.Player = player
         self.Meteors = meteor
@@ -323,19 +338,26 @@ class Power_up:
             power = random.choice(self.power)
             image = pygame.image.load(pathImage + "Power/" + power + ".png")
             self.powers.append([x, y , image, power])
-        if (randomized == 42 or randomized == 84) and len(self.powers) == 0:
+        elif (randomized == 42 or randomized == 84) and len(self.powers) == 0:
             bolt = random.choice(self.bold)
             image = pygame.image.load(pathImage + "Power/bolt_" + bolt + ".png")
             self.powers.append([x, y , image, bolt])
+        elif randomized == 37 and len(self.powers) == 0 and self.Player.lives <= 1:
+            image = pygame.image.load(pathImage + "Power/" + self.shield + ".png")
+            self.powers.append([x, y , image, self.shield])
 
     def update(self):
         if len(self.powers) != 0:
             self.powers[0][1] = self.powers[0][1] + self.speed
             if self.powers[0][1] > HEIGHT + 10:
                 self.powers.pop(0)
+        if len(self.shield_) > 0:
+            self.shield_.clear()
+            self.shield_.append([self.Player.getX(), self.Player.getY(), self.shield_image])
 
     def encounter(self, score, zicmu):
         item = pygame.mixer.Sound( pathAudio  + 'sfx_item.ogg')
+        shield = pygame.mixer.Sound( pathAudio  + 'sfx_shieldUp.ogg')
         if self.powers[0][3] == "pill_amo":
             self.Weapon.number = self.Weapon.number + 1
             if self.Weapon.number == 3:
@@ -344,6 +366,12 @@ class Power_up:
             self.Weapon.speed = self.Weapon.speed + 1
         elif self.powers[0][3] == "pill_speed":
             self.Player.speed = self.Player.speed + 1
+        elif self.powers[0][3] == "shield_gold":
+            self.Player.lives = self.Player.lives + 1
+            self.shield_.append([self.Player.getX(), self.Player.getY(), self.shield_image])
+            shield.play()
+            self.powers.pop(0)
+            return score
         if self.powers[0][3] == "bronze" or self.powers[0][3] == "silver" or self.powers[0][3] == "gold":
             if self.powers[0][3] == "bronze":
                 toDestroy = math.ceil(len(self.Meteors.meteors) / 3)
@@ -373,7 +401,7 @@ class Player:
     def __init__(self, ship_sprite):
         self.x = WIDTH / 2
         self.y = HEIGHT - 50
-        self.lives = 3
+        self.lives = 1
         self.speed = 5
         self.width = ship_sprite.get_size()[0]
         self.height = ship_sprite.get_size()[1]

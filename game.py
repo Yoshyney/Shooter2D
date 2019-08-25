@@ -65,21 +65,27 @@ def chooseYourShip(menuSong):
     start = False
     counter = 0
     while True:
-        ship = pygame.image.load(pathImage + "Ship/ship" + str(Numbership) + ".png")
         background = pygame.image.load(pathImage + "Background/background" + str(math.floor(count / 10)) + ".gif")
         count = count + 1
         if count == 150:
             count = 1
         event = pygame.event.poll()
         screen.blit(background , (0, 0))
-        if event.type == pygame.KEYDOWN:
+        plus = 0
+        for x in range(0, 6):
+            ship = pygame.image.load(pathImage + "Ship_selection/ship" + str(x) + ".png")
+            screen.blit(ship,(WIDTH / 4 - 30 + plus, HEIGHT / 2))
+            if x == Numbership:
+                pygame.draw.rect(screen , PURPLE, (WIDTH / 4 - 30 + plus,  HEIGHT / 2 + 33 , ship.get_size()[0] , 5) )
+            plus = plus + 40
+        if event.type == pygame.KEYDOWN and not start:
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 quit()
-            elif event.key  ==  pygame.K_LEFT:
-                if Numbership != 2:
+            elif event.key  ==  pygame.K_RIGHT and not start:
+                if Numbership != 5:
                     Numbership =  Numbership + 1
-            elif event.key  ==  pygame.K_RIGHT:
+            elif event.key  ==  pygame.K_LEFT and not start:
                 if  Numbership != 0:
                     Numbership =  Numbership - 1
             elif event.key  ==  pygame.K_RETURN:
@@ -89,22 +95,31 @@ def chooseYourShip(menuSong):
             quit()
         elif start:
             if counter <= 60:
-                write_text('3', WIDTH / 2 - 10, HEIGHT / 2, WHITE, 50)
+                write_text('3', WIDTH / 2 - 10, HEIGHT / 4, WHITE, 50)
             elif counter >= 60 and counter < 120:
-                write_text('2', WIDTH / 2 - 10, HEIGHT / 2, WHITE, 50)
+                write_text('2', WIDTH / 2 - 10, HEIGHT / 4, WHITE, 50)
             elif counter >= 120 and counter < 180:
                 menuSong.stop()
                 ready = pygame.mixer.Sound( pathAudio  + 'getready.ogg')
                 ready.play()
-                write_text('1', WIDTH / 2 - 10, HEIGHT / 2, WHITE, 50)
-                write_text('READY', WIDTH / 3 + 10, HEIGHT / 4, WHITE, 20)
+                write_text('1', WIDTH / 2 - 10, HEIGHT / 4, WHITE, 50)
+                write_text('READY', WIDTH / 3 + 10, HEIGHT / 4 + 60, WHITE, 20)
             elif counter > 180:
                 break
             counter = counter + 1
+        pygame.draw.rect(screen , PURPLE, (WIDTH / 2 - 90, HEIGHT / 2 + 80 ,WIDTH / 2, 30) )
+        if text_boundaries("Retour", WIDTH / 2 - 80, HEIGHT / 2 + 90):
+            write_text("Retour", WIDTH / 2 - 80, HEIGHT / 2 + 90, BLACK)
+            if pygame.mouse.get_pressed()[0] == 1:
+                init_menu()
         else:
-            screen.blit(ship,(WIDTH / 2 - (ship.get_size()[0] / 2), HEIGHT / 2))
-            write_text("Ship number " + str(Numbership), WIDTH / 3 - 10, HEIGHT / 2 + 100, PURPLE)
-            write_text("Press enter to go", WIDTH / 3 - 30, HEIGHT / 2 + 130, PURPLE)
+            write_text("Retour", WIDTH / 2 - 80, HEIGHT / 2 + 90, WHITE)
+        if text_boundaries("Choose", WIDTH / 2 + 10, HEIGHT / 2 + 90):
+            write_text("Choose", WIDTH / 2 + 10, HEIGHT / 2 + 90, BLACK)
+            if pygame.mouse.get_pressed()[0] == 1:
+                start = True
+        else:
+            write_text("Choose", WIDTH / 2 + 10, HEIGHT / 2 + 90, WHITE) 
         clock.tick(FPS)
         pygame.display.update()
     return launch_game(Numbership)
@@ -158,7 +173,7 @@ def launch_game(numbership):
         elif event.type == pygame.QUIT:
             pygame.quit()
             quit()   
-        score = boundaries(player, meteors, weapon, score, power)
+        score = boundaries(player, meteors, weapon, score, power, numbership)
         weapon.update()
         power.update()
         meteors.update(score)
@@ -177,7 +192,6 @@ def Menu(numbership):
         elif event.type == pygame.QUIT:
             pygame.quit()
             quit()
-        print(pygame.mouse.get_pressed())
         pygame.draw.rect(screen , PURPLE, (120,220,140,150) )
         if text_boundaries("Continue", WIDTH / 2 - 45, HEIGHT / 2):
             write_text("Continue", WIDTH / 2 - 45, HEIGHT / 2, BLACK)
@@ -243,7 +257,7 @@ def lost_menu(numbership, score):
             star = pygame.image.load(pathImage  +  "star/star_" +  str(x) + ".png")
             screen.blit(star, (130 + y, HEIGHT / 2 - 45) )
             y = y + 30
-        if score == 0:
+        if stars == 0:
             write_text("No stars", WIDTH / 2 - 45, HEIGHT / 2 - 30, WHITE)
         if text_boundaries("Replay", WIDTH / 2 - 45, HEIGHT / 2 + 30):
             write_text("Replay", WIDTH / 2 - 45, HEIGHT / 2 + 30, BLACK)
@@ -267,7 +281,7 @@ def lost_menu(numbership, score):
         clock.tick(FPS)
         pygame.display.update()
 
-def boundaries(player, meteors, weapon, score, power):
+def boundaries(player, meteors, weapon, score, power, numbership):
     lose = pygame.mixer.Sound( pathAudio  + 'sfx_lose.ogg')
     bolt = pygame.mixer.Sound( pathAudio  + 'sfx_zap.ogg')
     shield = pygame.mixer.Sound( pathAudio  + 'sfx_shieldDown.ogg')
@@ -283,7 +297,7 @@ def boundaries(player, meteors, weapon, score, power):
                         shield.play()
                 else :
                     lose.play()
-                    lost_menu(2, score)
+                    lost_menu(numbership, score)
         for y in weapon.bullets:
             if (x[0] < y[0] and x[0] + x[4] > y[0]) or (x[0] < y[0] + weapon.width and x[0] + x[4] > y[0] + weapon.width):
                 # correction to do on the impact of the bullet 
@@ -504,7 +518,7 @@ class Meteors:
             PositionY = random.randrange(-300, -100)
             Speed = random.randrange(3 , 7)
             self.meteors.append([PositionX, PositionY , Speed, Meteor, meteorX, meteorY])
-    
+
     def update(self, score):
         tab = []
         for x in range(0 , len(self.meteors)):
@@ -526,5 +540,4 @@ class Meteors:
     def setMeteors(self, tab):
         self.meteors = tab
     
-# init_menu()
-launch_game(2)
+init_menu()

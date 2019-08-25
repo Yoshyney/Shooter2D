@@ -107,12 +107,12 @@ def chooseYourShip(menuSong):
                 break
             counter = counter + 1
         pygame.draw.rect(screen , PURPLE, (WIDTH / 2 - 90, HEIGHT / 2 + 80 ,WIDTH / 2, 30) )
-        if text_boundaries("Retour", WIDTH / 2 - 80, HEIGHT / 2 + 90):
-            write_text("Retour", WIDTH / 2 - 80, HEIGHT / 2 + 90, BLACK)
+        if text_boundaries("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90):
+            write_text("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90, BLACK)
             if pygame.mouse.get_pressed()[0] == 1:
                 init_menu()
         else:
-            write_text("Retour", WIDTH / 2 - 80, HEIGHT / 2 + 90, WHITE)
+            write_text("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90, WHITE)
         if text_boundaries("Choose", WIDTH / 2 + 10, HEIGHT / 2 + 90):
             write_text("Choose", WIDTH / 2 + 10, HEIGHT / 2 + 90, BLACK)
             if pygame.mouse.get_pressed()[0] == 1:
@@ -177,7 +177,7 @@ def launch_game(numbership):
         elif event.type == pygame.QUIT:
             pygame.quit()
             quit()   
-        score = boundaries(player, meteors, weapon, score, power, numbership)
+        score = boundaries(player, meteors, weapon, score, power, numbership, enemy)
         weapon.update()
         power.update()
         meteors.update(score)
@@ -286,13 +286,13 @@ def lost_menu(numbership, score):
         clock.tick(FPS)
         pygame.display.update()
 
-def boundaries(player, meteors, weapon, score, power, numbership):
+def boundaries(player, meteors, weapon, score, power, numbership, enemy):
     lose = pygame.mixer.Sound( pathAudio  + 'sfx_lose.ogg')
     bolt = pygame.mixer.Sound( pathAudio  + 'sfx_zap.ogg')
     shield = pygame.mixer.Sound( pathAudio  + 'sfx_shieldDown.ogg')
     for x in meteors.meteors:
         if (player.getX() + player.width > x[0] and player.getX() < x[0]) or (player.getX() + player.width > x[0] + x[4] and player.getX() < x[0] + x[4]) or (player.getX() + player.width > x[0] and (player.getX() < x[0] + x[4] / 2 or player.getX() < x[0] + x[4] / 3)):
-            if player.getY() > x[1] and x[5] <= 60 and x[1] > player.getY() - player.height + 25 or player.getY() > x[1] and x[5] >= 60 and x[1] > player.getY() - player.height - 25:
+            if player.getY() > x[1] and x[5] <= 60 and x[5] >= 20 and x[1] > player.getY() - player.height + 30 or player.getY() > x[1] and x[5] >= 60 and x[1] > player.getY() - player.height - 15 or player.getY() > x[1] and x[5] < 20 and x[1] > player.getY() - player.height + 33:
                 if player.lives > 1:
                     Explosion(x[4], x[5], x[0], x[1])
                     if x in meteors.meteors:
@@ -310,7 +310,7 @@ def boundaries(player, meteors, weapon, score, power, numbership):
                     score = score + math.floor(x[5] / 10)
                     Explosion(x[4], x[5], x[0], x[1])
                     power.is_falling(x[0], x[1])
-                    if player.getY() - weapon.bullets[len(weapon.bullets) - 1][1] < 150:
+                    if player.getY() - weapon.bullets[len(weapon.bullets) - 1][1] <= 150:
                         weapon.addDelay(weapon.bullets[len(weapon.bullets) - 1][1])
                     if x in meteors.meteors:
                         meteors.meteors.remove(x)
@@ -321,18 +321,34 @@ def boundaries(player, meteors, weapon, score, power, numbership):
         if(player.getX() + player.width > power_[0] and player.getX() < power_[0]) or (player.getX() + player.width + power_[0] + powerX and player.getX() < power_[0] + powerX):
             if player.getY() > power_[1] and power_[1] > player.getY() - player.height + 25 or player.getY() > power_[1] - powerY and power_[1] - powerY > player.getY() - player.height:
                 score = power.encounter(score, bolt)
+    if len(enemy.enemy) > 0:
+        # enemy [PositionX, PositionY , Enemy, EnemyX, EnemyY, lives]
+        # bullets [x, y]
+        for x in weapon.bullets:
+            for y in enemy.enemy:
+                if y[0] < x[0] and y[0] + y[3] > x[0] or y[0] < x[0] + weapon.width and y[0] + y[3] > x[0] + weapon.width:
+                    if x[1] > y[1] and x[1] < y[1] + y[4] or x[1] - weapon.height > y[1] and x[1] - weapon.height < y[1] + y[4]:
+                        if y[5] == 1:
+                            Explosion(y[3], y[4], y[0], y[1])
+                            enemy.enemy.remove(y)
+                        else:
+                            if x in weapon.bullets:
+                                weapon.bullets.remove(x)
+                                y[5] = y[5] - 1
+                                Explosion(y[3], y[4], y[0], y[1], 8)
+                        score = score + 10
     return score
 
 class Explosion:
-    def __init__(self, x, y , positionX, positionY):
+    def __init__(self, x, y , positionX, positionY, boom = 12):
         self.positionX = positionX
         self.positionY = positionY
         self.x = x
         self.y = y
-        self.boom()
+        self.boom(boom)
 
-    def boom(self):
-        for x in range(0, 12):
+    def boom(self, boom):
+        for x in range(0, boom):
                     self.image = pygame.image.load(pathImage + "Explosion/explosion" + str(x) + ".png")
                     self.image = pygame.transform.scale(self.image, (self.x, self.y))
                     screen.blit(self.image, (self.positionX, self.positionY))
@@ -436,20 +452,21 @@ class Enemy:
     def apparition(self):
         randomized = random.randrange(0, 100)
         actual_time = pygame.time.get_ticks()
-        if len(self.enemy) < self.possible and randomized < 25 and actual_time - self.last_update > 5000:
+        if len(self.enemy) < self.possible and randomized < 25 and actual_time - self.last_update > 1:
             Enemy = random.choice(self.enemyShip)
             lives = Enemy.split("_")[1]
+            print(lives)
             Enemy = pygame.image.load(pathImage + "Enemy/" + Enemy + ".png")
             EnemyX = Enemy.get_size()[0]
             EnemyY = Enemy.get_size()[1]
             PositionX = random.randrange(0, WIDTH - EnemyX)
             PositionY = random.randrange(-300, -100)
-            self.enemy.append([PositionX, PositionY , Enemy, EnemyX, EnemyY, lives])
-            self.last_update = pygame.time.get_ticks()
+            self.enemy.append([PositionX, PositionY , Enemy, EnemyX, EnemyY, int(lives)])
 
     def update(self, score):
         shoot = False
         for x in self.enemy:
+            self.last_update = pygame.time.get_ticks()
             if x[1] <  10:
                 x[1] = x[1] + self.speedY
             else:
@@ -465,7 +482,7 @@ class Enemy:
             if actual_time - self.updated > 2000:
                 image = pygame.image.load(pathImage  +  "Weapon/laser1.png")
                 diff = 0
-                for y in range(0, int(x[5])):
+                for y in range(0, x[5]):
                     self.bullets.append([x[0] + diff, x[1] + 20, image])
                     diff = diff + 20
                 shoot = True

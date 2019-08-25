@@ -130,7 +130,7 @@ def launch_game(numbership):
     ship = pygame.transform.scale(ship, (50, 38))
     laser = pygame.image.load(pathImage  +  "Weapon/laser0.png")
     piou = pygame.mixer.Sound( pathAudio  + 'sfx_laser1.ogg')
-    player = Player(ship)
+    player = Player(ship, numbership)
     weapon = Weapon(player)
     meteors = Meteors()
     power = Power_up(weapon, player, meteors)
@@ -412,13 +412,17 @@ class Power_up:
         return score
 
 class Player:
-    def __init__(self, ship_sprite):
+    def __init__(self, ship_sprite, numbership):
         self.x = WIDTH / 2
         self.y = HEIGHT - 50
         self.lives = 1
         self.speed = 5
-        self.width = ship_sprite.get_size()[0]
-        self.height = ship_sprite.get_size()[1]
+        if numbership < 3:
+            self.width = ship_sprite.get_size()[0]
+            self.height = ship_sprite.get_size()[1]
+        else:
+            self.width = ship_sprite.get_size()[0] - 10
+            self.height = ship_sprite.get_size()[1] - 8
     
     def getX(self):
         return self.x

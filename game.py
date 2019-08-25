@@ -106,19 +106,20 @@ def chooseYourShip(menuSong):
             elif counter > 180:
                 break
             counter = counter + 1
-        pygame.draw.rect(screen , PURPLE, (WIDTH / 2 - 90, HEIGHT / 2 + 80 ,WIDTH / 2, 30) )
-        if text_boundaries("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90):
-            write_text("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90, BLACK)
-            if pygame.mouse.get_pressed()[0] == 1:
-                init_menu()
-        else:
-            write_text("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90, WHITE)
-        if text_boundaries("Choose", WIDTH / 2 + 10, HEIGHT / 2 + 90):
-            write_text("Choose", WIDTH / 2 + 10, HEIGHT / 2 + 90, BLACK)
-            if pygame.mouse.get_pressed()[0] == 1:
-                start = True
-        else:
-            write_text("Choose", WIDTH / 2 + 10, HEIGHT / 2 + 90, WHITE) 
+        if not start:
+            pygame.draw.rect(screen , PURPLE, (WIDTH / 2 - 90, HEIGHT / 2 + 80 ,WIDTH / 2, 30))
+            if text_boundaries("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90):
+                write_text("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90, BLACK)
+                if pygame.mouse.get_pressed()[0] == 1:
+                    init_menu()
+            else:
+                write_text("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90, WHITE)
+            if text_boundaries("Choose", WIDTH / 2 + 10, HEIGHT / 2 + 90):
+                write_text("Choose", WIDTH / 2 + 10, HEIGHT / 2 + 90, BLACK)
+                if pygame.mouse.get_pressed()[0] == 1:
+                    start = True
+            else:
+                write_text("Choose", WIDTH / 2 + 10, HEIGHT / 2 + 90, WHITE) 
         clock.tick(FPS)
         pygame.display.update()
     return launch_game(Numbership)
@@ -250,8 +251,6 @@ def lost_menu(numbership, score):
             if event.key == pygame.K_ESCAPE:
                 pygame.quit()
                 quit()
-            elif event.key == pygame.K_RETURN:
-                pause = False
         elif event.type == pygame.QUIT:
             pygame.quit()
             quit()
@@ -322,8 +321,6 @@ def boundaries(player, meteors, weapon, score, power, numbership, enemy):
             if player.getY() > power_[1] and power_[1] > player.getY() - player.height + 25 or player.getY() > power_[1] - powerY and power_[1] - powerY > player.getY() - player.height:
                 score = power.encounter(score, bolt)
     if len(enemy.enemy) > 0:
-        # enemy [PositionX, PositionY , Enemy, EnemyX, EnemyY, lives]
-        # bullets [x, y]
         for x in weapon.bullets:
             for y in enemy.enemy:
                 if y[0] < x[0] and y[0] + y[3] > x[0] or y[0] < x[0] + weapon.width and y[0] + y[3] > x[0] + weapon.width:
@@ -337,6 +334,18 @@ def boundaries(player, meteors, weapon, score, power, numbership, enemy):
                                 y[5] = y[5] - 1
                                 Explosion(y[3], y[4], y[0], y[1], 8)
                         score = score + 10
+    for x in enemy.bullets:
+        if player.getX() < x[0] and player.getX() + player.width > x[0] or player.getX() < x[0] + enemy.width and player.getX() + player.width > x[0] + enemy.width:
+            if player.getY() > x[1] and player.getY() - player.height < x[1] or player.getY() > x[1] - enemy.height and player.getY() - player.height < x[1] - enemy.height:
+                if player.lives > 1:
+                    player.lives = player.lives - 1
+                    shield.play()
+                    power.shield_.pop(0)
+                    if x in enemy.bullets:
+                        enemy.bullets.remove(x)
+                else :
+                    lose.play()
+                    lost_menu(numbership, score)
     return score
 
 class Explosion:
@@ -447,15 +456,14 @@ class Enemy:
         self.last_update = pygame.time.get_ticks()
         self.updated = pygame.time.get_ticks()
         self.width = pygame.image.load(pathImage  +  "Weapon/laser1.png").get_size()[0]
-        self.height =  pygame.image.load(pathImage  +  "Weapon/laser1.png").get_size()[0]
+        self.height =  pygame.image.load(pathImage  +  "Weapon/laser1.png").get_size()[1]
 
     def apparition(self):
         randomized = random.randrange(0, 100)
         actual_time = pygame.time.get_ticks()
-        if len(self.enemy) < self.possible and randomized < 25 and actual_time - self.last_update > 1:
+        if len(self.enemy) < self.possible and randomized < 25 and actual_time - self.last_update > 4000:
             Enemy = random.choice(self.enemyShip)
             lives = Enemy.split("_")[1]
-            print(lives)
             Enemy = pygame.image.load(pathImage + "Enemy/" + Enemy + ".png")
             EnemyX = Enemy.get_size()[0]
             EnemyY = Enemy.get_size()[1]
@@ -630,5 +638,4 @@ class Meteors:
     def setMeteors(self, tab):
         self.meteors = tab
     
-# init_menu()
-launch_game(2)
+init_menu()

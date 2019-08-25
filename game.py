@@ -107,7 +107,7 @@ def chooseYourShip(menuSong):
             write_text("Press enter to go", WIDTH / 3 - 30, HEIGHT / 2 + 130, PURPLE)
         clock.tick(FPS)
         pygame.display.update()
-    launch_game(Numbership)
+    return launch_game(Numbership)
 
 
 def launch_game(numbership):
@@ -155,8 +155,7 @@ def launch_game(numbership):
                 Menu(numbership)
         elif event.type == pygame.QUIT:
             pygame.quit()
-            quit()
-        
+            quit()   
         score = boundaries(player, meteors, weapon, score, power)
         weapon.update()
         power.update()
@@ -176,21 +175,31 @@ def Menu(numbership):
         elif event.type == pygame.QUIT:
             pygame.quit()
             quit()
+        print(pygame.mouse.get_pressed())
         pygame.draw.rect(screen , PURPLE, (120,220,140,150) )
-        if text_boundaries("Take back", WIDTH / 2 - 45, HEIGHT / 2):
-            write_text("Take back", WIDTH / 2 - 45, HEIGHT / 2, BLACK)
+        if text_boundaries("Continue", WIDTH / 2 - 45, HEIGHT / 2):
+            write_text("Continue", WIDTH / 2 - 45, HEIGHT / 2, BLACK)
+            if pygame.mouse.get_pressed()[0] == 1:
+                pause = False
         else :
-             write_text("Take back", WIDTH / 2 - 45, HEIGHT / 2, WHITE)
+             write_text("Continue", WIDTH / 2 - 45, HEIGHT / 2, WHITE)
         if text_boundaries("Replay", WIDTH / 2 - 45, HEIGHT / 2 + 30):
             write_text("Replay", WIDTH / 2 - 45, HEIGHT / 2 + 30, BLACK)
+            if pygame.mouse.get_pressed()[0] == 1:
+                launch_game(numbership)
         else:
             write_text("Replay", WIDTH / 2 - 45, HEIGHT / 2 + 30, WHITE)
         if text_boundaries("Go to Menu", WIDTH / 2 - 45, HEIGHT / 2 + 60):
             write_text("Go to Menu", WIDTH / 2 - 45, HEIGHT / 2 + 60, BLACK)
+            if pygame.mouse.get_pressed()[0] == 1:
+                init_menu()
         else:
             write_text("Go to Menu", WIDTH / 2 - 45, HEIGHT / 2 + 60, WHITE)
         if text_boundaries("Quit", WIDTH / 2 - 45, HEIGHT / 2 + 90):
             write_text("Quit", WIDTH / 2 - 45, HEIGHT / 2 + 90, BLACK)
+            if pygame.mouse.get_pressed()[0] == 1:
+                pygame.quit()
+                quit()
         else:
             write_text("Quit", WIDTH / 2 - 45, HEIGHT / 2 + 90, WHITE)
         clock.tick(FPS)
@@ -204,7 +213,58 @@ def text_boundaries(Text, x, y):
         if y <= sourisY and y + 9 >= sourisY:
             return True
     return False
-            
+
+def lost_menu(numbership, score):
+    pause = True
+    stars = 0
+    if score > 10:
+        stars = stars + 1
+    if score > 20:
+        stars = stars + 1
+    if score > 30:
+        stars = stars + 1
+    while pause:
+        event = pygame.event.poll()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                quit()
+            elif event.key == pygame.K_RETURN:
+                pause = False
+        elif event.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+        y = 0
+        pygame.draw.rect(screen , PURPLE, (120,185,135,170) )
+        write_text("Score  " + str(score) , WIDTH / 2 - 45, HEIGHT / 2 , WHITE)
+        for x in range(0 , stars):
+            star = pygame.image.load(pathImage  +  "star/star_" +  str(x) + ".png")
+            screen.blit(star, (130 + y, HEIGHT / 2 - 45) )
+            y = y + 30
+        if score == 0:
+            write_text("No stars", WIDTH / 2 - 45, HEIGHT / 2 - 30, WHITE)
+        if text_boundaries("Replay", WIDTH / 2 - 45, HEIGHT / 2 + 30):
+            write_text("Replay", WIDTH / 2 - 45, HEIGHT / 2 + 30, BLACK)
+            if pygame.mouse.get_pressed()[0] == 1:
+                launch_game(numbership)
+        else:
+            write_text("Replay", WIDTH / 2 - 45, HEIGHT / 2 + 30, WHITE)
+        if text_boundaries("Go to Menu", WIDTH / 2 - 45, HEIGHT / 2 + 60):
+            write_text("Go to Menu", WIDTH / 2 - 45, HEIGHT / 2 + 60, BLACK)
+            if pygame.mouse.get_pressed()[0] == 1:
+                init_menu()
+        else:
+            write_text("Go to Menu", WIDTH / 2 - 45, HEIGHT / 2 + 60, WHITE)
+        if text_boundaries("Quit", WIDTH / 2 - 45, HEIGHT / 2 + 90):
+            write_text("Quit", WIDTH / 2 - 45, HEIGHT / 2 + 90, BLACK)
+            if pygame.mouse.get_pressed()[0] == 1:
+                pygame.quit()
+                quit()
+        else:
+            write_text("Quit", WIDTH / 2 - 45, HEIGHT / 2 + 90, WHITE)
+        clock.tick(FPS)
+        pygame.display.update()
+
 def boundaries(player, meteors, weapon, score, power):
     lose = pygame.mixer.Sound( pathAudio  + 'sfx_lose.ogg')
     bolt = pygame.mixer.Sound( pathAudio  + 'sfx_zap.ogg')
@@ -212,7 +272,7 @@ def boundaries(player, meteors, weapon, score, power):
         if (player.getX() + player.width > x[0] and player.getX() < x[0]) or (player.getX() + player.width > x[0] + x[4] and player.getX() < x[0] + x[4]) or (player.getX() + player.width > x[0] and (player.getX() < x[0] + x[4] / 2 or player.getX() < x[0] + x[4] / 3)):
             if player.getY() > x[1] and x[5] <= 60 and x[1] > player.getY() - player.height + 25 or player.getY() > x[1] and x[5] >= 60 and x[1] > player.getY() - player.height - 25:
                 lose.play()
-                launch_game(2)
+                lost_menu(2, score)
         for y in weapon.bullets:
             if (x[0] < y[0] and x[0] + x[4] > y[0]) or (x[0] < y[0] + weapon.width and x[0] + x[4] > y[0] + weapon.width):
                 # correction to do on the impact of the bullet 

@@ -111,6 +111,7 @@ def chooseYourShip(menuSong):
             if text_boundaries("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90):
                 write_text("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90, BLACK)
                 if pygame.mouse.get_pressed()[0] == 1:
+                    menuSong.stop()
                     init_menu()
             else:
                 write_text("Return", WIDTH / 2 - 80, HEIGHT / 2 + 90, WHITE)
